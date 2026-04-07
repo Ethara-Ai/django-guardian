@@ -44,9 +44,7 @@ def get_user_permission_full_codename(perm: str) -> str:
         Full codename for the user permission in the format
             'app_label.<perm>_<usermodulename>'.
     """
-    user_model = get_user_model()
-    model_name = user_model._meta.model_name
-    return "{}.{}_{}".format(user_model._meta.app_label, perm, model_name)
+    pass
 
 
 def get_user_permission_codename(perm: str) -> str:
@@ -59,4 +57,4 @@ def get_user_permission_codename(perm: str) -> str:
          Codename for the user permission in the format
             `<perm>_<usermodulename>`
     """
-    return get_user_permission_full_codename(perm).split(".")[1]
+    pass

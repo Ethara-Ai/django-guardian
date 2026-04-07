@@ -22,31 +22,12 @@ def get_version():
     the package version at runtime. This function retains that ability using the
     recommended importlib approach.
     """
-    from importlib.metadata import version
-
-    return version("django-guardian")
+    pass
 
 
 def monkey_patch_user():
-    from django.contrib.auth import get_user_model
-
-    from .utils import evict_obj_perms_cache, get_anonymous_user, get_user_obj_perms_model
-
-    UserObjectPermission = get_user_obj_perms_model()
-    User = get_user_model()
-    # Prototype User and Group methods
-    setattr(User, "get_anonymous", staticmethod(lambda: get_anonymous_user()))
-    setattr(User, "add_obj_perm", lambda self, perm, obj: UserObjectPermission.objects.assign_perm(perm, self, obj))
-    setattr(User, "del_obj_perm", lambda self, perm, obj: UserObjectPermission.objects.remove_perm(perm, self, obj))
-    setattr(User, "evict_obj_perms_cache", evict_obj_perms_cache)
+    pass
 
 
 def monkey_patch_group():
-    from django.contrib.auth.models import Group
-
-    from .utils import get_group_obj_perms_model
-
-    GroupObjectPermission = get_group_obj_perms_model()
-    # Prototype Group methods
-    setattr(Group, "add_obj_perm", lambda self, perm, obj: GroupObjectPermission.objects.assign_perm(perm, self, obj))
-    setattr(Group, "del_obj_perm", lambda self, perm, obj: GroupObjectPermission.objects.remove_perm(perm, self, obj))
+    pass

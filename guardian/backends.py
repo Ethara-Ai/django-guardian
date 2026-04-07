@@ -63,7 +63,7 @@ class ObjectPermissionBackend:
     supports_inactive_user = True
 
     def authenticate(self, request: HttpRequest, username: Optional[str] = None, password: Optional[str] = None) -> Any:
-        return None
+        pass
 
     def has_perm(self, user_obj: Any, perm: str, obj: Optional[Model] = None) -> bool:
         """Check if a user has the permission for a given object.
@@ -125,17 +125,7 @@ class ObjectPermissionBackend:
              a set of permission strings that the given `user_obj` has for `obj`
              through their group memberships.
         """
-        # This backend only handles object-level permissions
-        if obj is None:
-            return set()
-
-        # check if user_obj and object are supported
-        support, user_obj = check_support(user_obj, obj)
-        if not support:
-            return set()
-
-        check = ObjectPermissionChecker(user_obj)
-        return set(check.get_group_perms(obj))
+        pass
 
     def get_all_permissions(self, user_obj: Any, obj: Optional[Model] = None) -> Iterable[str]:
         """Returns all permissions for a given object.
@@ -147,10 +137,4 @@ class ObjectPermissionBackend:
         Returns:
              a set of permission strings that the given `user_obj` has for `obj`.
         """
-        # check if user_obj and object are supported
-        support, user_obj = check_support(user_obj, obj)
-        if not support:
-            return set()
-
-        check = ObjectPermissionChecker(user_obj)
-        return set(check.get_perms(obj))
+        pass

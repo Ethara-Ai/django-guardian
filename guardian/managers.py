@@ -44,24 +44,13 @@ def _ensure_permission(perm: _PermType, ctype: ContentType) -> Permission:
 def _get_perm_filter(
     perm: _PermType, model: Union[Model, type[Model], None] = None, ctype: Union[ContentType, None] = None
 ) -> Q:
-    if isinstance(perm, Permission):
-        return Q(permission=perm)
-
-    assert ctype is not None or model is not None
-    if ctype is None and model is not None:
-        ctype = get_content_type(model)
-
-    return Q(permission__codename=perm, permission__content_type=ctype)
+    pass
 
 
 class BaseObjectPermissionManager(models.Manager):
     @property
     def user_or_group_field(self) -> str:
-        try:
-            self.model._meta.get_field("user")
-            return "user"
-        except FieldDoesNotExist:
-            return "group"
+        pass
 
     def is_generic(self) -> bool:
         try:
@@ -146,11 +135,7 @@ class BaseObjectPermissionManager(models.Manager):
 
     def assign(self, perm: _PermType, user_or_group: Any, obj: Model) -> Any:
         """Depreciated function name left in for compatibility"""
-        warnings.warn(
-            "UserObjectPermissionManager method 'assign' is being renamed to 'assign_perm'. Update your code accordingly as old name will be depreciated in 2.0 version.",
-            DeprecationWarning,
-        )
-        return self.assign_perm(perm, user_or_group, obj)
+        pass
 
     def remove_perm(self, perm: _PermType, user_or_group: Any, obj: Model) -> tuple[int, dict]:
         """
@@ -160,16 +145,7 @@ class BaseObjectPermissionManager(models.Manager):
         we use `Queryset.delete` method for removing it.
         The main implication of this is that `post_delete` signals would NOT be fired.
         """
-        if getattr(obj, "pk", None) is None:
-            raise ObjectNotPersisted("Object %s needs to be persisted first" % obj)
-
-        filters = Q(**{self.user_or_group_field: user_or_group})
-        filters &= _get_perm_filter(perm, model=obj)
-        if self.is_generic():
-            filters &= Q(object_pk=obj.pk)
-        else:
-            filters &= Q(content_object__pk=obj.pk)
-        return self.filter(filters).delete()
+        pass
 
     def bulk_remove_perm(
         self, perm: _PermType, user_or_group: Any, queryset: Union[QuerySet, list]
@@ -181,45 +157,13 @@ class BaseObjectPermissionManager(models.Manager):
         we use `Queryset.delete` method for removing it.
         The main implication of this is that `post_delete` signals would NOT be fired.
         """
-        filters = Q(**{self.user_or_group_field: user_or_group})
-
-        if isinstance(queryset, list):
-            if not queryset:
-                return (0, {})
-            ctype = get_content_type(queryset[0])
-        else:
-            ctype = get_content_type(queryset.model)
-
-        filters &= _get_perm_filter(perm, ctype=ctype)
-        if self.is_generic():
-            if isinstance(queryset, list):
-                filters &= Q(object_pk__in=[str(obj.pk) for obj in queryset])
-            else:
-                filters &= Q(object_pk__in=[str(pk) for pk in queryset.values_list("pk", flat=True)])
-        else:
-            filters &= Q(content_object__in=queryset)
-
-        return self.filter(filters).delete()
+        pass
 
     def remove_perm_from_many(self, perm: _PermType, users_or_groups: Any, obj: Model) -> tuple[int, dict]:
         """
         Bulk removes given `perm` for the object `obj` from a set of users or a set of groups.
         """
-        ctype = get_content_type(obj)
-        filters = _get_perm_filter(perm, ctype=ctype)
-        if self.is_generic():
-            filters &= Q(object_pk=str(obj.pk))
-        else:
-            filters &= Q(content_object=obj)
-
-        if isinstance(users_or_groups, list):
-            to_remove = [item.pk for item in users_or_groups]
-        else:
-            to_remove = users_or_groups.values_list("pk", flat=True)
-
-        filters &= Q(**{f"{self.user_or_group_field}_id__in": to_remove})
-
-        return self.filter(filters).delete()
+        pass
 
 
 class UserObjectPermissionManager(BaseObjectPermissionManager):

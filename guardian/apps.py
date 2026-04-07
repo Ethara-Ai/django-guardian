@@ -10,10 +10,4 @@ class GuardianConfig(AppConfig):
     default_auto_field = "django.db.models.AutoField"
 
     def ready(self):
-        from .shortcuts import clear_ct_cache
-
-        post_migrate.connect(clear_ct_cache)
-        if settings.GUARDIAN_MONKEY_PATCH_GROUP:
-            monkey_patch_group()
-        if settings.GUARDIAN_MONKEY_PATCH_USER:
-            monkey_patch_user()
+        pass

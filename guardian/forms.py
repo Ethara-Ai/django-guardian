@@ -30,15 +30,7 @@ class BaseObjectPermissionsForm(forms.Form):
 
         May be overridden entirely.
         """
-        field_class = self.get_obj_perms_field_class()
-        field = field_class(
-            label=self.get_obj_perms_field_label(),
-            choices=self.get_obj_perms_field_choices(),
-            initial=list(self.get_obj_perms_field_initial()),
-            widget=self.get_obj_perms_field_widget(),
-            required=self.are_obj_perms_required(),
-        )
-        return field
+        pass
 
     def get_obj_perms_field_name(self) -> str:
         """Get the name of the object permissions management field.
@@ -47,7 +39,7 @@ class BaseObjectPermissionsForm(forms.Form):
             Name of the object permissions management field.
                 Defaults to 'permission'
         """
-        return "permissions"
+        pass
 
     def get_obj_perms_field_label(self) -> str:
         """Get the label of the object permissions management field.
@@ -56,7 +48,7 @@ class BaseObjectPermissionsForm(forms.Form):
             Label of the object permissions management field.
             Default to `_("Permissions")` (marked to be translated).
         """
-        return _("Permissions")
+        pass
 
     def get_obj_perms_field_choices(self) -> list:
         """Get the choices for object permissions management field.
@@ -65,8 +57,7 @@ class BaseObjectPermissionsForm(forms.Form):
         list of tuples `(codename, name)` for each `Permission` instance
         for the managed object.
         """
-        choices = [(p.codename, p.name) for p in get_perms_for_model(self.obj)]
-        return choices
+        pass
 
     def get_obj_perms_field_initial(self) -> list:
         """Get the initial object permissions management field choices.
@@ -75,7 +66,7 @@ class BaseObjectPermissionsForm(forms.Form):
             List of initial object permissions.
             Default to `[]` (empty list).
         """
-        return []
+        pass
 
     def get_obj_perms_field_class(self) -> type[forms.Field]:
         """Get object permissions management field's class.
@@ -84,7 +75,7 @@ class BaseObjectPermissionsForm(forms.Form):
             Object permissions management field's class.
             Default to `forms.MultipleChoiceField`.
         """
-        return forms.MultipleChoiceField
+        pass
 
     def get_obj_perms_field_widget(self) -> type[forms.Widget]:
         """Get the widget class for object permissions management field.
@@ -93,7 +84,7 @@ class BaseObjectPermissionsForm(forms.Form):
             Object permissions management field's widget class.
             Default to `forms.SelectMultiple`.
         """
-        return forms.SelectMultiple
+        pass
 
     def are_obj_perms_required(self) -> bool:
         """Indicates if at least one object permission should be required.
@@ -102,7 +93,7 @@ class BaseObjectPermissionsForm(forms.Form):
             Whether at least one object permission should be required.
             Defaults to `False`.
         """
-        return False
+        pass
 
     def save_obj_perms(self) -> None:
         """
@@ -146,7 +137,7 @@ class UserObjectPermissionsForm(BaseObjectPermissionsForm):
         Returns:
             List of permissions assigned to the user for the object.
         """
-        return get_user_perms(self.user, self.obj)
+        pass
 
     def save_obj_perms(self) -> None:
         """Saves selected object permissions.
@@ -156,16 +147,7 @@ class UserObjectPermissionsForm(BaseObjectPermissionsForm):
 
         Should be called *after* form is validated.
         """
-        perms = set(self.cleaned_data[self.get_obj_perms_field_name()])
-        model_perms = {c[0] for c in self.get_obj_perms_field_choices()}
-        init_perms = set(self.get_obj_perms_field_initial())
-
-        to_remove = (model_perms - perms) & init_perms
-        for perm in to_remove:
-            remove_perm(perm, self.user, self.obj)
-
-        for perm in perms - init_perms:
-            assign_perm(perm, self.user, self.obj)
+        pass
 
 
 class GroupObjectPermissionsForm(BaseObjectPermissionsForm):
@@ -201,7 +183,7 @@ class GroupObjectPermissionsForm(BaseObjectPermissionsForm):
         Returns:
             List of permissions assigned to the group for the object.
         """
-        return get_group_perms(self.group, self.obj)
+        pass
 
     def save_obj_perms(self) -> None:
         """Saves selected object permissions.
@@ -211,13 +193,4 @@ class GroupObjectPermissionsForm(BaseObjectPermissionsForm):
 
         Should be called *after* form is validated.
         """
-        perms = set(self.cleaned_data[self.get_obj_perms_field_name()])
-        model_perms = {c[0] for c in self.get_obj_perms_field_choices()}
-        init_perms = set(self.get_obj_perms_field_initial())
-
-        to_remove = (model_perms - perms) & init_perms
-        for perm in to_remove:
-            remove_perm(perm, self.group, self.obj)
-
-        for perm in perms - init_perms:
-            assign_perm(perm, self.group, self.obj)
+        pass

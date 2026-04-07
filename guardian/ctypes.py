@@ -25,4 +25,4 @@ def get_default_content_type(obj: Union[Model, Type[Model]]) -> ContentType:
         https://docs.djangoproject.com/en/5.1/ref/contrib/contenttypes/
 
     """
-    return ContentType.objects.get_for_model(obj)
+    pass

@@ -82,16 +82,4 @@ def get_obj_perms(parser, token):
         As of v1.2, passing `None` as `obj` for this template tag won't rise
         obfuscated exception and would return empty permissions set instead.
     """
-    bits = token.split_contents()
-    format = '{% get_obj_perms user/group for obj as "context_var" perm_checker %}'
-    if not (6 <= len(bits) <= 7) or bits[2] != "for" or bits[4] != "as":
-        raise template.TemplateSyntaxError("get_obj_perms tag should be in format: %s" % format)
-
-    for_whom = bits[1]
-    obj = bits[3]
-    context_var = bits[5]
-    if context_var[0] != context_var[-1] or context_var[0] not in ('"', "'"):
-        raise template.TemplateSyntaxError("get_obj_perms tag's context_var argument should be in quotes")
-    context_var = context_var[1:-1]
-    checker = bits[6] if len(bits) == 7 else None
-    return ObjectPermissionsNode(for_whom, obj, context_var, checker)
+    pass

@@ -41,14 +41,7 @@ class BaseObjectPermission(models.Model):
             force_insert (bool): If True, the save will be forced to be an insert.
             force_update (bool): If True, the save will be forced to be an update.
         """
-        content_type = get_content_type(self.content_object)
-        if content_type != self.permission.content_type:
-            raise ValidationError(
-                "Cannot persist permission not designed for "
-                "this class (permission's type is %r and object's type is %r)"
-                % (self.permission.content_type, content_type)
-            )
-        return super().save(*args, **kwargs)
+        pass
 
 
 class BaseGenericObjectPermission(models.Model):

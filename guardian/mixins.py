@@ -65,9 +65,7 @@ class LoginRequiredMixin:
     login_url = settings.LOGIN_URL
 
     def dispatch(self, request, *args, **kwargs):
-        return login_required(redirect_field_name=self.redirect_field_name, login_url=self.login_url)(super().dispatch)(
-            request, *args, **kwargs
-        )
+        pass
 
 
 class PermissionRequiredMixin:
@@ -149,7 +147,7 @@ class PermissionRequiredMixin:
 
         Override this method to override the object_permission_denied_message attribute.
         """
-        return self.object_permission_denied_message
+        pass
 
     def get_required_permissions(self, request: Optional[HttpRequest] = None) -> list[str]:
         """Get the required permissions.
@@ -161,32 +159,10 @@ class PermissionRequiredMixin:
         Parameters:
             request (HttpRequest): Original request.
         """
-        if isinstance(self.permission_required, str):
-            perms = [self.permission_required]
-        elif isinstance(self.permission_required, GeneratorType):
-            # This feature will be removed in v4. (#666)
-            warnings.warn(
-                "Using generators for 'permission_required' attribute is deprecated and will be removed in v4. "
-                "Use a list or tuple instead as generators can only be consumed once, "
-                "potentially leading to security issues.",
-                DeprecationWarning,
-                stacklevel=2,
-            )
-            perms = [p for p in self.permission_required]
-        elif isinstance(self.permission_required, Iterable):
-            perms = [p for p in self.permission_required]
-        else:
-            raise ImproperlyConfigured(
-                "'PermissionRequiredMixin' requires "
-                "'permission_required' attribute to be set to "
-                "'<app_label>.<permission codename>' but is set to '%s' instead" % self.permission_required
-            )
-        return perms
+        pass
 
     def get_permission_object(self):
-        if hasattr(self, "permission_object"):
-            return self.permission_object
-        return hasattr(self, "get_object") and self.get_object() or getattr(self, "object", None)
+        pass
 
     def check_permissions(
         self, request: HttpRequest
@@ -199,25 +175,7 @@ class PermissionRequiredMixin:
         Parameters:
             request (HttpRequest): The original request.
         """
-        obj = self.get_permission_object()
-
-        forbidden = get_40x_or_None(
-            request,
-            perms=self.get_required_permissions(request),
-            obj=obj,
-            login_url=self.login_url,
-            redirect_field_name=self.redirect_field_name,
-            return_403=self.return_403,
-            return_404=self.return_404,
-            permission_denied_message=self.get_object_permission_denied_message(),
-            accept_global_perms=self.accept_global_perms,
-            any_perm=self.any_perm,
-        )
-        if forbidden:
-            self.on_permission_check_fail(request, forbidden, obj=obj)
-        if forbidden and self.raise_exception:
-            raise PermissionDenied(self.get_object_permission_denied_message())
-        return forbidden
+        pass
 
     def on_permission_check_fail(
         self, request: HttpRequest, response: HttpResponse, obj: Optional[Union[Model, Any]] = None
@@ -235,13 +193,7 @@ class PermissionRequiredMixin:
         """
 
     def dispatch(self, request, *args, **kwargs):
-        self.request = request
-        self.args = args
-        self.kwargs = kwargs
-        response = self.check_permissions(request)
-        if response:
-            return response
-        return super().dispatch(request, *args, **kwargs)
+        pass
 
 
 class GuardianUserMixin:
@@ -250,22 +202,18 @@ class GuardianUserMixin:
         return get_anonymous_user()
 
     def add_obj_perm(self, perm: str, obj: Model) -> Any:
-        UserObjectPermission = get_user_obj_perms_model()
-        return UserObjectPermission.objects.assign_perm(perm, self, obj)
+        pass
 
     def del_obj_perm(self, perm: str, obj: Model) -> Any:
-        UserObjectPermission = get_user_obj_perms_model()
-        return UserObjectPermission.objects.remove_perm(perm, self, obj)
+        pass
 
 
 class GuardianGroupMixin:
     def add_obj_perm(self, perm: str, obj: Model) -> Any:
-        GroupObjectPermission = get_group_obj_perms_model()
-        return GroupObjectPermission.objects.assign_perm(perm, self, obj)
+        pass
 
     def del_obj_perm(self, perm: str, obj: Model) -> Any:
-        GroupObjectPermission = get_group_obj_perms_model()
-        return GroupObjectPermission.objects.remove_perm(perm, self, obj)
+        pass
 
 
 class PermissionListMixin:
@@ -318,27 +266,7 @@ class PermissionListMixin:
         Returns:
             List of the required permissions.
         """
-        if isinstance(self.permission_required, str):
-            perms = [self.permission_required]
-        elif isinstance(self.permission_required, GeneratorType):
-            # This feature will be removed in v4. (#666)
-            warnings.warn(
-                "Using generators for 'permission_required' attribute is deprecated and will be removed in v4. "
-                "Use a list or tuple instead as generators can only be consumed once, "
-                "potentially leading to security issues.",
-                DeprecationWarning,
-                stacklevel=2,
-            )
-            perms = [p for p in self.permission_required]
-        elif isinstance(self.permission_required, Iterable):
-            perms = [p for p in self.permission_required]
-        else:
-            raise ImproperlyConfigured(
-                "'PermissionRequiredMixin' requires "
-                "'permission_required' attribute to be set to "
-                "'<app_label>.<permission codename>' but is set to '%s' instead" % self.permission_required
-            )
-        return perms
+        pass
 
     @deprecated(
         "This method is deprecated and will be removed in future versions. Use get_user_object_kwargs instead which has identical behavior."
@@ -356,7 +284,7 @@ class PermissionListMixin:
             This method is deprecated and will be removed in future versions.
             Use `get_user_object_kwargs` instead which has identical behavior.
         """
-        return self.get_user_object_kwargs(queryset)
+        pass
 
     def get_user_object_kwargs(self, queryset: QuerySet) -> dict:
         """Get kwargs to pass to `get_objects_for_user`.
@@ -367,13 +295,7 @@ class PermissionListMixin:
         Parameters:
             queryset (QuerySet): Queryset to filter.
         """
-        return dict(
-            user=self.request.user,  # type: ignore[attr-defined]
-            perms=self.get_required_permissions(self.request),  # type: ignore[attr-defined]
-            klass=queryset,
-            **self.get_objects_for_user_extra_kwargs,
-        )
+        pass
 
     def get_queryset(self, *args, **kwargs):
-        qs = super().get_queryset(*args, **kwargs)
-        return get_objects_for_user(**self.get_user_object_kwargs(qs))
+        pass

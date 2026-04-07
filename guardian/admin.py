@@ -39,55 +39,19 @@ class GuardedInlineAdminMixin:
 
     def has_add_permission(self, request, obj=None):
         """Check if the user has permission to add instances of this inline model."""
-        opts = self.model._meta
-        codename = f"add_{opts.model_name}"
-        perm = f"{opts.app_label}.{codename}"
-
-        if obj is None:
-            # For global permissions when obj is None
-            return request.user.has_perm(perm)
-        else:
-            # For object-level permissions
-            return request.user.has_perm(perm, obj)
+        pass
 
     def has_view_permission(self, request, obj=None):
         """Check if the user has permission to view instances of this inline model."""
-        opts = self.model._meta
-        codename = f"view_{opts.model_name}"
-        perm = f"{opts.app_label}.{codename}"
-
-        if obj is None:
-            # For global permissions when obj is None
-            return request.user.has_perm(perm)
-        else:
-            # For object-level permissions
-            return request.user.has_perm(perm, obj)
+        pass
 
     def has_change_permission(self, request, obj=None):
         """Check if the user has permission to change instances of this inline model."""
-        opts = self.model._meta
-        codename = f"change_{opts.model_name}"
-        perm = f"{opts.app_label}.{codename}"
-
-        if obj is None:
-            # For global permissions when obj is None
-            return request.user.has_perm(perm)
-        else:
-            # For object-level permissions
-            return request.user.has_perm(perm, obj)
+        pass
 
     def has_delete_permission(self, request, obj=None):
         """Check if the user has permission to delete instances of this inline model."""
-        opts = self.model._meta
-        codename = f"delete_{opts.model_name}"
-        perm = f"{opts.app_label}.{codename}"
-
-        if obj is None:
-            # For global permissions when obj is None
-            return request.user.has_perm(perm)
-        else:
-            # For object-level permissions
-            return request.user.has_perm(perm, obj)
+        pass
 
 
 class AdminUserObjectPermissionsForm(UserObjectPermissionsForm):
@@ -99,7 +63,7 @@ class AdminUserObjectPermissionsForm(UserObjectPermissionsForm):
     """
 
     def get_obj_perms_field_widget(self):
-        return FilteredSelectMultiple(_("Permissions"), False)
+        pass
 
 
 class AdminGroupObjectPermissionsForm(GroupObjectPermissionsForm):
@@ -111,7 +75,7 @@ class AdminGroupObjectPermissionsForm(GroupObjectPermissionsForm):
     """
 
     def get_obj_perms_field_widget(self):
-        return FilteredSelectMultiple(_("Permissions"), False)
+        pass
 
 
 class GuardedModelAdminMixin:
@@ -128,19 +92,7 @@ class GuardedModelAdminMixin:
     include_object_permissions_urls: bool = True
 
     def get_queryset(self, request):
-        qs = super().get_queryset(request)
-
-        if request.user.is_superuser:
-            return qs
-
-        if self.user_can_access_owned_objects_only:
-            filters = {self.user_owned_objects_field: request.user}
-            qs = qs.filter(**filters)
-        if self.user_can_access_owned_by_group_objects_only:
-            qs_key = f"{self.group_owned_objects_field}__in"
-            filters = {qs_key: request.user.groups.all()}
-            qs = qs.filter(**filters)
-        return qs
+        pass
 
     def get_urls(self):
         """
@@ -154,28 +106,7 @@ class GuardedModelAdminMixin:
            `...` above are standard, instance detail url (i.e. `/admin/flatpages/1/`)
 
         """
-        urls = super().get_urls()
-        if self.include_object_permissions_urls:
-            info = self.model._meta.app_label, self.model._meta.model_name
-            myurls = [
-                path(
-                    "<object_pk>/permissions/",
-                    view=self.admin_site.admin_view(self.obj_perms_manage_view),
-                    name="%s_%s_permissions" % info,
-                ),
-                path(
-                    "<object_pk>/permissions/user-manage/<user_id>/",
-                    view=self.admin_site.admin_view(self.obj_perms_manage_user_view),
-                    name="%s_%s_permissions_manage_user" % info,
-                ),
-                path(
-                    "<object_pk>/permissions/group-manage/<group_id>/",
-                    view=self.admin_site.admin_view(self.obj_perms_manage_group_view),
-                    name="%s_%s_permissions_manage_group" % info,
-                ),
-            ]
-            urls = myurls + urls
-        return urls
+        pass
 
     def get_obj_perms_base_context(self, request, obj):
         """Get context dict with common admin and object permissions related content.
@@ -187,21 +118,7 @@ class GuardedModelAdminMixin:
         Returns:
             django template context
         """
-        context = self.admin_site.each_context(request)
-        context.update(
-            {
-                "adminform": {"model_admin": self},
-                "media": self.media,
-                "object": obj,
-                "app_label": self.model._meta.app_label,
-                "opts": self.model._meta,
-                "original": str(obj),
-                "has_change_permission": self.has_change_permission(request, obj),
-                "model_perms": get_perms_for_model(obj),
-                "title": _("Object permissions"),
-            }
-        )
-        return context
+        pass
 
     def obj_perms_manage_view(self, request, object_pk):
         """Main object permissions view.
@@ -210,62 +127,7 @@ class GuardedModelAdminMixin:
         Users or groups without object permissions for related *instance* would **not** be shown.
         To add or manage user or group, one should use links or forms presented within the page.
         """
-        if not self.has_change_permission(request, None):
-            post_url = reverse("admin:index", current_app=self.admin_site.name)
-            return redirect(post_url)
-
-        from django.contrib.admin.utils import unquote
-
-        obj = get_object_or_404(self.get_queryset(request), pk=unquote(object_pk))
-        users_perms = OrderedDict(
-            sorted(
-                get_users_with_perms(obj, attach_perms=True, with_group_users=False).items(),
-                key=lambda user: getattr(user[0], get_user_model().USERNAME_FIELD),
-            )
-        )
-
-        groups_perms = OrderedDict(
-            sorted(get_groups_with_perms(obj, attach_perms=True).items(), key=lambda group: group[0].name)
-        )
-
-        if request.method == "POST" and "submit_manage_user" in request.POST:
-            user_form = self.get_obj_perms_user_select_form(request)(request.POST)
-            group_form = self.get_obj_perms_group_select_form(request)(request.POST)
-            info = (
-                self.admin_site.name,
-                self.model._meta.app_label,
-                self.model._meta.model_name,
-            )
-            if user_form.is_valid():
-                user_id = user_form.cleaned_data["user"].pk
-                url = reverse("%s:%s_%s_permissions_manage_user" % info, args=[obj.pk, user_id])
-                return redirect(url)
-        elif request.method == "POST" and "submit_manage_group" in request.POST:
-            user_form = self.get_obj_perms_user_select_form(request)(request.POST)
-            group_form = self.get_obj_perms_group_select_form(request)(request.POST)
-            info = (
-                self.admin_site.name,
-                self.model._meta.app_label,
-                self.model._meta.model_name,
-            )
-            if group_form.is_valid():
-                group_id = group_form.cleaned_data["group"].id
-                url = reverse("%s:%s_%s_permissions_manage_group" % info, args=[obj.pk, group_id])
-                return redirect(url)
-        else:
-            user_form = self.get_obj_perms_user_select_form(request)()
-            group_form = self.get_obj_perms_group_select_form(request)()
-
-        context = self.get_obj_perms_base_context(request, obj)
-        context["users_perms"] = users_perms
-        context["groups_perms"] = groups_perms
-        context["user_form"] = user_form
-        context["group_form"] = group_form
-
-        # https://github.com/django/django/commit/cf1f36bb6eb34fafe6c224003ad585a647f6117b
-        request.current_app = self.admin_site.name
-
-        return render(request, self.get_obj_perms_manage_template(), context)
+        pass
 
     def get_obj_perms_manage_template(self):
         """
@@ -277,41 +139,11 @@ class GuardedModelAdminMixin:
            return `"admin/guardian/grappelli/obj_perms_manage.html"`.
 
         """
-        if "grappelli" in settings.INSTALLED_APPS:
-            return "admin/guardian/contrib/grappelli/obj_perms_manage.html"
-        return self.obj_perms_manage_template
+        pass
 
     def obj_perms_manage_user_view(self, request, object_pk, user_id):
         """Manages selected users' permissions for the current object."""
-        if not self.has_change_permission(request, None):
-            post_url = reverse("admin:index", current_app=self.admin_site.name)
-            return redirect(post_url)
-
-        user = get_object_or_404(get_user_model(), pk=user_id)
-        obj = get_object_or_404(self.get_queryset(request), pk=object_pk)
-        form_class = self.get_obj_perms_manage_user_form(request)
-        form = form_class(user, obj, request.POST or None)
-
-        if request.method == "POST" and form.is_valid():
-            form.save_obj_perms()
-            msg = gettext("Permissions saved.")
-            messages.success(request, msg)
-            info = (
-                self.admin_site.name,
-                self.model._meta.app_label,
-                self.model._meta.model_name,
-            )
-            url = reverse("%s:%s_%s_permissions_manage_user" % info, args=[obj.pk, user.pk])
-            return redirect(url)
-
-        context = self.get_obj_perms_base_context(request, obj)
-        context["user_obj"] = user
-        context["user_perms"] = get_user_perms(user, obj)
-        context["form"] = form
-
-        request.current_app = self.admin_site.name
-
-        return render(request, self.get_obj_perms_manage_user_template(), context)
+        pass
 
     def get_obj_perms_manage_user_template(self) -> str:
         """Returns object permissions for user admin template.
@@ -323,9 +155,7 @@ class GuardedModelAdminMixin:
            `"admin/guardian/grappelli/obj_perms_manage_user.html"`.
            Else, it returns `self.obj_perms_manage_user_template`.
         """
-        if "grappelli" in settings.INSTALLED_APPS:
-            return "admin/guardian/contrib/grappelli/obj_perms_manage_user.html"
-        return self.obj_perms_manage_user_template
+        pass
 
     def get_obj_perms_user_select_form(self, request: HttpRequest) -> Type[forms.Form]:
         """Get the form class for selecting a user for permissions management.
@@ -337,7 +167,7 @@ class GuardedModelAdminMixin:
             The form class for selecting a user for permissions management.
                 Default is `UserManage`
         """
-        return UserManage
+        pass
 
     def get_obj_perms_group_select_form(self, request: HttpRequest) -> Type[forms.Form]:
         """Get the form class for group object permissions management.
@@ -348,7 +178,7 @@ class GuardedModelAdminMixin:
             The form class for group object permissions management.
                 Default is `GroupManage`
         """
-        return GroupManage
+        pass
 
     def get_obj_perms_manage_user_form(self, request: HttpRequest) -> Type[forms.Form]:
         """Get the form class for user object permissions management.
@@ -360,40 +190,11 @@ class GuardedModelAdminMixin:
             The form class for user object permissions management.
                 Default is `AdminUserObjectPermissionsForm`.
         """
-        return AdminUserObjectPermissionsForm
+        pass
 
     def obj_perms_manage_group_view(self, request, object_pk, group_id):
         """Manages selected groups' permissions for the current object."""
-        if not self.has_change_permission(request, None):
-            post_url = reverse("admin:index", current_app=self.admin_site.name)
-            return redirect(post_url)
-
-        obj = get_object_or_404(self.get_queryset(request), pk=object_pk)
-        GroupModel = get_group_obj_perms_model(obj).group.field.related_model
-        group = get_object_or_404(GroupModel, id=group_id)
-        form_class = self.get_obj_perms_manage_group_form(request)
-        form = form_class(group, obj, request.POST or None)
-
-        if request.method == "POST" and form.is_valid():
-            form.save_obj_perms()
-            msg = gettext("Permissions saved.")
-            messages.success(request, msg)
-            info = (
-                self.admin_site.name,
-                self.model._meta.app_label,
-                self.model._meta.model_name,
-            )
-            url = reverse("%s:%s_%s_permissions_manage_group" % info, args=[obj.pk, group.id])
-            return redirect(url)
-
-        context = self.get_obj_perms_base_context(request, obj)
-        context["group_obj"] = group
-        context["group_perms"] = get_group_perms(group, obj)
-        context["form"] = form
-
-        request.current_app = self.admin_site.name
-
-        return render(request, self.get_obj_perms_manage_group_template(), context)
+        pass
 
     def get_obj_perms_manage_group_template(self):
         """Returns object permissions for group admin template.
@@ -407,9 +208,7 @@ class GuardedModelAdminMixin:
            If `INSTALLED_APPS` contains `grappelli` this function would
            return `"admin/guardian/grappelli/obj_perms_manage_group.html"`.
         """
-        if "grappelli" in settings.INSTALLED_APPS:
-            return "admin/guardian/contrib/grappelli/obj_perms_manage_group.html"
-        return self.obj_perms_manage_group_template
+        pass
 
     def get_obj_perms_manage_group_form(self, request):
         """Get the form class for group object permissions management.
@@ -421,7 +220,7 @@ class GuardedModelAdminMixin:
             The form class for group object permissions management.
                 Default is `AdminGroupObjectPermissionsForm`.
         """
-        return AdminGroupObjectPermissionsForm
+        pass
 
 
 class GuardedModelAdmin(GuardedModelAdminMixin, admin.ModelAdmin):
@@ -485,17 +284,7 @@ class UserManage(forms.Form):
 
     def clean_user(self):
         """Returns `User` instance based on the given identification."""
-        identification = self.cleaned_data["user"]
-        user_model = get_user_model()
-        try:
-            username_field = user_model.USERNAME_FIELD
-        except AttributeError:
-            username_field = "username"
-        try:
-            user = user_model.objects.get(**{username_field: identification})
-            return user
-        except user_model.DoesNotExist:
-            raise forms.ValidationError(self.fields["user"].error_messages["does_not_exist"])
+        pass
 
 
 class GroupManage(forms.Form):
@@ -503,10 +292,4 @@ class GroupManage(forms.Form):
 
     def clean_group(self):
         """Returns `Group` instance based on the given group name."""
-        name = self.cleaned_data["group"]
-        GroupModel = get_group_obj_perms_model().group.field.related_model
-        try:
-            group = GroupModel.objects.get(name=name)
-            return group
-        except GroupModel.DoesNotExist:
-            raise forms.ValidationError(self.fields["group"].error_messages["does_not_exist"])
+        pass
